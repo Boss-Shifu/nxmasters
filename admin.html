@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NXMASTERS Studio — Editor Visual de la Página</title>
+    <link rel="icon" type="image/jpeg" href="assets/nxmasters_logo.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Manrope:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-layout {
+            max-width: 1580px;
+            margin: 0 auto;
+            padding: 1.25rem;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+        .admin-sidebar {
+            background: var(--surface-1);
+            border: 1px solid var(--border-neon);
+            border-radius: 18px;
+            padding: 1rem;
+            position: sticky;
+            top: 84px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .side-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            width: 100%;
+            text-align: left;
+            padding: 0.7rem 0.95rem;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .side-btn:hover {
+            background: rgba(168, 85, 247, 0.14);
+            color: #fff;
+        }
+        .side-btn.active {
+            background: linear-gradient(100deg, #fbbf24, #f97316);
+            color: #140800;
+            font-weight: 900;
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+        }
+        .admin-panel {
+            background: var(--surface-1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .panel-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 0.9rem;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.32rem;
+        }
+        .field.full {
+            grid-column: 1 / -1;
+        }
+        .field label {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #fde68a;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .field input, .field select, .field textarea {
+            background: rgba(15, 7, 28, 0.92);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            border-radius: 10px;
+            padding: 0.6rem 0.8rem;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.88rem;
+            width: 100%;
+        }
+        .field input:focus, .field select:focus, .field textarea:focus {
+            outline: none;
+            border-color: var(--banner-gold);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        }
+        .editor-card {
+            background: rgba(17, 8, 32, 0.85);
+            border: 1px solid rgba(168, 85, 247, 0.28);
+            border-radius: 16px;
+            padding: 1.15rem;
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: 145px 1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+        .cover-preview-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .cover-preview-box img {
+            width: 145px;
+            height: 215px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid var(--banner-gold);
+            background: #120722;
+        }
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            padding: 0.55rem 0.95rem;
+            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 0.84rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            color: #fff;
+        }
+        .btn-add {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            border-color: #86efac;
+        }
+        .btn-publish {
+            background: linear-gradient(100deg, #f59e0b, #ea580c);
+            color: #140800;
+            border-color: #fde047;
+            font-weight: 900;
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
+        }
+        .btn-publish:hover {
+            transform: translateY(-1px) scale(1.02);
+        }
+        .btn-danger {
+            background: rgba(220, 38, 38, 0.2);
+            border-color: rgba(220, 38, 38, 0.5);
+            color: #fca5a5;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+        .btn-soft {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #e2e8f0;
+        }
+        .btn-soft:hover {
+            background: rgba(255, 255, 255, 0.16);
+        }
+        .status-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 200;
+            padding: 0.85rem 1.25rem;
+            border-radius: 14px;
+            background: #16a34a;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+            display: none;
+        }
+        @media (max-width: 900px) {
+            .admin-layout { grid-template-columns: 1fr; }
+            .admin-sidebar { position: static; flex-direction: row; flex-wrap: wrap; }
+            .side-btn { width: auto; flex: 1 1 auto; }
+            .editor-card { grid-template-columns: 1fr; justify-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA SUPERIOR DEL ESTUDIO VISUAL -->
+    <header class="glass-header">
+        <div class="site-bar">
+            <a href="index.html" class="brand">
+                <img src="assets/nxmasters_logo.jpg" alt="Logo" class="brand-avatar">
+                <div class="brand-title-wrap">
+                    <span class="brand-name">NX<span class="brand-gold">STUDIO</span></span>
+                    <span class="brand-sub">Panel de Administración Visual</span>
+                </div>
+            </a>
+
+            <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+                <a href="index.html" target="_blank" class="btn-action btn-soft" style="text-decoration:none;">
+                    <i class="fa-solid fa-eye"></i> Ver Página Pública
+                </a>
+                <button type="button" class="btn-action btn-soft" onclick="downloadDataJs()">
+                    <i class="fa-solid fa-file-arrow-down"></i> Descargar data.js
+                </button>
+                <button type="button" class="btn-action btn-publish" id="btn-save-cloud" onclick="publishToGitHub()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Publicar Cambios en Vivo (24/7)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+        <!-- MENÚ LATERAL -->
+        <aside class="admin-sidebar">
+            <button type="button" class="side-btn active" data-sec="juegos" onclick="showAdminSection('juegos')">
+                <i class="fa-solid fa-gamepad"></i> Juegos y Carátulas
+            </button>
+            <button type="button" class="side-btn" data-sec="subindices" onclick="showAdminSection('subindices')">
+                <i class="fa-solid fa-folder-tree"></i> Sub-Índices / Filtros
+            </button>
+            <button type="button" class="side-btn" data-sec="pagina" onclick="showAdminSection('pagina')">
+                <i class="fa-solid fa-pen-ruler"></i> Textos y Pestañas
+            </button>
+            <button type="button" class="side-btn" data-sec="guias" onclick="showAdminSection('guias')">
+                <i class="fa-solid fa-book-open"></i> Guías de Instalación
+            </button>
+            <button type="button" class="side-btn" data-sec="team" onclick="showAdminSection('team')">
+                <i class="fa-solid fa-users"></i> El Team (Integrantes)
+            </button>
+            <button type="button" class="side-btn" data-sec="conexion" onclick="showAdminSection('conexion')">
+                <i class="fa-solid fa-key"></i> Conexión GitHub 24/7
+            </button>
+        </aside>
+
+        <!-- PANEL CENTRAL -->
+        <main class="admin-panel">
+
+            <!-- SECCIÓN 1: JUEGOS, CARÁTULAS Y LINKS TERABOX -->
+            <section id="sec-juegos">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-gamepad" style="color:var(--banner-gold);"></i> Gestor Visual de Juegos, Carátulas y Links</h2>
+                    <button type="button" class="btn-action btn-add" onclick="addNewGame()">
+                        <i class="fa-solid fa-plus"></i> Agregar Nuevo Juego
+                    </button>
+                </div>
+                <p style="color:var(--text-muted);font-size:0.86rem;margin-bottom:1rem;">
+                    Modifica cualquier dato en tiempo real. Puedes pegar el link de una carátula o pulsar <strong>"Subir Imagen"</strong> para cargar una foto desde tu PC/celular. Al terminar, pulsa el botón dorado <strong>"Publicar Cambios en Vivo"</strong> arriba a la derecha.
+                </p>
+                <div id="admin-games-list"></div>
+            </section>
+
+            <!-- SECCIÓN 2: SUB-ÍNDICES / CATEGORÍAS DE FILTRADO -->
+            <section id="sec-subindices" class="hidden">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-folder-tree" style="color:var(--banner-gold);"></i> Sub-Índices y Botones de Filtro</h2>
+                    <button type="button" class="btn-action btn-add" onclick="addSubIndex()">
+                        <i class="fa-solid fa-plus"></i> Nuevo Sub-Índice
+                    </button>
+                </div>
+                <p style="color:var(--text-muted);font-size:0.86rem;margin-bottom:1rem;">
+                    Aquí puedes crear nuevos sub-índices (por ejemplo: <em>DLCs</em>, <em>Mods</em>, <em>Parches</em>, <em>Emuladores</em>), cambiarles el nombre, el color de la etiqueta o el ícono FontAwesome.
+                </p>
+                <div id="admin-subindices-list"></div>
+            </section>
+
+            <!-- SECCIÓN 3: INFORMACIÓN DE LA PÁGINA Y PESTAÑAS -->
+            <section id="sec-pagina" class="hidden">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-pen-ruler" style="color:var(--banner-gold);"></i> Información de la Página, Banner y Pestañas</h2>
+                </div>
+                <div id="admin-site-form" class="form-grid"></div>
+            </section>
+
+            <!-- SECCIÓN 4: GUÍAS DE INSTALACIÓN -->
+            <section id="sec-guias" class="hidden">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-book-open" style="color:var(--banner-gold);"></i> Editor de Guías de Instalación</h2>
+                    <button type="button" class="btn-action btn-add" onclick="addGuide()">
+                        <i class="fa-solid fa-plus"></i> Nueva Tarjeta de Guía
+                    </button>
+                </div>
+                <div id="admin-guides-list"></div>
+            </section>
+
+            <!-- SECCIÓN 5: EL TEAM -->
+            <section id="sec-team" class="hidden">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-users" style="color:var(--banner-gold);"></i> Integrantes del Team NXMASTERS</h2>
+                    <button type="button" class="btn-action btn-add" onclick="addTeamMember()">
+                        <i class="fa-solid fa-plus"></i> Agregar Integrante
+                    </button>
+                </div>
+                <div id="admin-team-list"></div>
+            </section>
+
+            <!-- SECCIÓN 6: CONEXIÓN GITHUB -->
+            <section id="sec-conexion" class="hidden">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-key" style="color:var(--banner-gold);"></i> Conexión Directa con GitHub (`Boss-Shifu/nxmasters`)</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="field full">
+                        <label>Repositorio de Destino (Usuario/Repo)</label>
+                        <input type="text" id="gh-repo" value="Boss-Shifu/nxmasters" onchange="saveCreds()">
+                    </div>
+                    <div class="field full">
+                        <label>Token de Acceso de GitHub (Se guarda de forma segura solo en tu navegador)</label>
+                        <input type="password" id="gh-token" placeholder="gho_xxxxxxxxxxxx o ghp_xxxxxxxxxxxx" onchange="saveCreds()">
+                        <small style="color:var(--text-dim);margin-top:0.35rem;">
+                            💡 Si abres este panel con el acceso directo <strong>Abrir-Editor-Visual.bat</strong> de tu carpeta <code>WEB NXMasters</code>, el token se conecta automáticamente sin que tengas que escribir nada.
+                        </small>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="toast" class="status-toast"></div>
+
+    <script src="data.js"></script>
+    <script>
+        let state = JSON.parse(JSON.stringify(window.NX_CONFIG));
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Si viene token por hash desde Abrir-Editor-Visual.bat, guardarlo en localStorage y limpiar la URL
+            if (window.location.hash.startsWith("#token=")) {
+                const tok = decodeURIComponent(window.location.hash.replace("#token=", "").trim());
+                if (tok) {
+                    localStorage.setItem("nxm_gh_token", tok);
+                    history.replaceState(null, "", window.location.pathname);
+                    showToast("🔑 Conectado automáticamente a tu cuenta Boss-Shifu");
+                }
+            }
+            document.getElementById("gh-token").value = localStorage.getItem("nxm_gh_token") || "";
+            document.getElementById("gh-repo").value = localStorage.getItem("nxm_gh_repo") || "Boss-Shifu/nxmasters";
+
+            renderAllAdmin();
+        });
+
+        function saveCreds() {
+            localStorage.setItem("nxm_gh_token", document.getElementById("gh-token").value.trim());
+            localStorage.setItem("nxm_gh_repo", document.getElementById("gh-repo").value.trim());
+        }
+
+        function showToast(msg, isError = false) {
+            const t = document.getElementById("toast");
+            t.style.background = isError ? "#dc2626" : "#16a34a";
+            t.textContent = msg;
+            t.style.display = "block";
+            setTimeout(() => { t.style.display = "none"; }, 4200);
+        }
+
+        function showAdminSection(sec) {
+            ["juegos", "subindices", "pagina", "guias", "team", "conexion"].forEach(s => {
+                document.getElementById(`sec-${s}`).classList.toggle("hidden", s !== sec);
+            });
+            document.querySelectorAll(".admin-sidebar .side-btn").forEach(b => {
+                b.classList.toggle("active", b.dataset.sec === sec);
+            });
+        }
+
+        function renderAllAdmin() {
+            renderAdminGames();
+            renderAdminSubIndices();
+            renderAdminSite();
+            renderAdminGuides();
+            renderAdminTeam();
+        }
+
+        // ================= 1. JUEGOS =================
+        function renderAdminGames() {
+            const container = document.getElementById("admin-games-list");
+            const subOptions = (state.subIndices || []).filter(s => s.id !== "todos" && s.id !== "espanol");
+
+            container.innerHTML = (state.games || []).map((g, idx) => `
+                <div class="editor-card">
+                    <div class="cover-preview-box">
+                        <img src="${g.image || 'assets/nxmasters_logo.jpg'}" id="preview-img-${idx}" onerror="this.src='assets/nxmasters_logo.jpg'">
+                        <label class="btn-action btn-soft" style="width:100%;font-size:0.75rem;padding:0.4rem;cursor:pointer;">
+                            <i class="fa-solid fa-upload"></i> Subir Carátula
+                            <input type="file" accept="image/*" style="display:none;" onchange="handleCoverUpload(${idx}, this)">
+                        </label>
+                        <div style="display:flex;gap:0.35rem;width:100%;">
+                            <button type="button" class="btn-action btn-soft" style="flex:1;padding:0.35rem;" onclick="moveGame(${idx}, -1)" title="Subir"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button type="button" class="btn-action btn-soft" style="flex:1;padding:0.35rem;" onclick="moveGame(${idx}, 1)" title="Bajar"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button type="button" class="btn-action btn-danger" style="flex:1;padding:0.35rem;" onclick="deleteGame(${idx})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Título del Juego / Proyecto</label>
+                            <input type="text" value="${escapeAttr(g.title)}" oninput="state.games[${idx}].title = this.value">
+                        </div>
+                        <div class="field">
+                            <label>Sub-Índice (Pestaña de Filtro)</label>
+                            <select onchange="updateGameType(${idx}, this.value)">
+                                ${subOptions.map(s => `<option value="${s.id}" ${g.type === s.id ? 'selected' : ''}>${s.label} (${s.id})</option>`).join("")}
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Etiqueta en Esquina (Ej: Fork Autorun)</label>
+                            <input type="text" value="${escapeAttr(g.typeLabel)}" oninput="state.games[${idx}].typeLabel = this.value">
+                        </div>
+                        <div class="field">
+                            <label>Género / Categoría</label>
+                            <input type="text" value="${escapeAttr(g.category)}" oninput="state.games[${idx}].category = this.value">
+                        </div>
+                        <div class="field">
+                            <label>Creador / Autor del Team</label>
+                            <input type="text" value="${escapeAttr(g.author)}" oninput="state.games[${idx}].author = this.value">
+                        </div>
+                        <div class="field">
+                            <label>Arquitectura (Ej: ARM64 AOT, x86 WineNX)</label>
+                            <input type="text" value="${escapeAttr(g.arch)}" oninput="state.games[${idx}].arch = this.value">
+                        </div>
+                        <div class="field">
+                            <label>Motores / Builds (Separados por coma)</label>
+                            <input type="text" value="${escapeAttr((g.engine || []).join(', '))}" oninput="state.games[${idx}].engine = this.value.split(',').map(x=>x.trim()).filter(Boolean)">
+                        </div>
+                        <div class="field">
+                            <label>Peso (Ej: 6.8 GB)</label>
+                            <input type="text" value="${escapeAttr(g.size)}" oninput="state.games[${idx}].size = this.value">
+                        </div>
+                        <div class="field">
+                            <label>Idioma</label>
+                            <select onchange="state.games[${idx}].language = this.value">
+                                <option value="es" ${g.language === 'es' ? 'selected' : ''}>Español</option>
+                                <option value="multi" ${g.language === 'multi' ? 'selected' : ''}>Multilenguaje</option>
+                                <option value="en" ${g.language === 'en' ? 'selected' : ''}>Inglés</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>URL de Carátula (o usa el botón Subir Carátula)</label>
+                            <input type="text" id="img-input-${idx}" value="${escapeAttr(g.image)}" oninput="state.games[${idx}].image = this.value; document.getElementById('preview-img-${idx}').src = this.value">
+                        </div>
+                        <div class="field">
+                            <label>☁️ Link Directo de TeraBox</label>
+                            <input type="url" value="${escapeAttr(g.teraboxLink)}" placeholder="https://1024terabox.com/s/..." oninput="state.games[${idx}].teraboxLink = this.value">
+                        </div>
+                        <div class="field">
+                            <label>📦 Link de Parche Extra (Opcional)</label>
+                            <input type="url" value="${escapeAttr(g.patchLink || '')}" placeholder="Opcional" oninput="state.games[${idx}].patchLink = this.value">
+                        </div>
+                        <div class="field full">
+                            <label>Descripción / Notas de la versión</label>
+                            <textarea rows="2" oninput="state.games[${idx}].description = this.value">${escapeHtml(g.description || '')}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function updateGameType(idx, newType) {
+            state.games[idx].type = newType;
+            const sub = (state.subIndices || []).find(s => s.id === newType);
+            if (sub) state.games[idx].typeLabel = sub.label;
+            renderAdminGames();
+        }
+
+        function addNewGame() {
+            const nextId = Date.now();
+            state.games.unshift({
+                id: nextId,
+                title: "Nuevo Proyecto NXMasters",
+                type: "fork",
+                typeLabel: "Fork Autorun",
+                category: "Acción",
+                arch: "ARM64 / WineNX",
+                engine: ["Autorun 4.5"],
+                size: "1.0 GB",
+                language: "es",
+                author: "NXMasters Team",
+                image: "assets/nxmasters_logo.jpg",
+                description: "Escribe aquí los detalles del port, wrapper, recompilación o fork.",
+                teraboxLink: "https://www.terabox.com/",
+                patchLink: ""
+            });
+            renderAdminGames();
+            showToast("✨ Juego agregado al inicio de la lista");
+        }
+
+        function deleteGame(idx) {
+            if (!confirm(`¿Eliminar "${state.games[idx].title}"?`)) return;
+            state.games.splice(idx, 1);
+            renderAdminGames();
+        }
+
+        function moveGame(idx, dir) {
+            const target = idx + dir;
+            if (target < 0 || target >= state.games.length) return;
+            const temp = state.games[idx];
+            state.games[idx] = state.games[target];
+            state.games[target] = temp;
+            renderAdminGames();
+        }
+
+        // Compresión de carátula en cliente para guardarla lista sin servidores externos
+        function handleCoverUpload(idx, inputEl) {
+            const file = inputEl.files && inputEl.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const maxW = 480;
+                    const maxH = 720;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > maxW) { h = Math.round(h * (maxW / w)); w = maxW; }
+                    if (h > maxH) { w = Math.round(w * (maxH / h)); h = maxH; }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, w, h);
+                    const dataUrl = canvas.toDataURL("image/jpeg", 0.84);
+                    state.games[idx].image = dataUrl;
+                    document.getElementById(`preview-img-${idx}`).src = dataUrl;
+                    document.getElementById(`img-input-${idx}`).value = dataUrl;
+                    showToast("🖼️ Carátula cargada y optimizada");
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ================= 2. SUB-ÍNDICES =================
+        function renderAdminSubIndices() {
+            const container = document.getElementById("admin-subindices-list");
+            container.innerHTML = (state.subIndices || []).map((sub, idx) => `
+                <div class="form-grid" style="background:rgba(17,8,32,0.85);padding:1rem;border-radius:14px;margin-bottom:0.75rem;border:1px solid rgba(168,85,247,0.25);align-items:end;">
+                    <div class="field">
+                        <label>ID Interno (sin espacios)</label>
+                        <input type="text" value="${escapeAttr(sub.id)}" ${sub.id === 'todos' ? 'disabled' : ''} oninput="state.subIndices[${idx}].id = this.value.toLowerCase().replace(/[^a-z0-9_-]/g,'')">
+                    </div>
+                    <div class="field">
+                        <label>Nombre Visible en Botón</label>
+                        <input type="text" value="${escapeAttr(sub.label)}" oninput="state.subIndices[${idx}].label = this.value">
+                    </div>
+                    <div class="field">
+                        <label>Ícono (Ej: fa-bolt, fa-cube, fa-star)</label>
+                        <input type="text" value="${escapeAttr(sub.icon || 'fa-gamepad')}" oninput="state.subIndices[${idx}].icon = this.value">
+                    </div>
+                    <div class="field">
+                        <label>Color de Etiqueta</label>
+                        <input type="color" value="${escapeAttr(sub.color || '#9333ea')}" style="height:40px;padding:4px;" oninput="state.subIndices[${idx}].color = this.value">
+                    </div>
+                    <div>
+                        ${sub.id !== 'todos' ? `<button type="button" class="btn-action btn-danger" onclick="state.subIndices.splice(${idx},1);renderAdminSubIndices();renderAdminGames();"><i class="fa-solid fa-trash"></i> Borrar</button>` : ''}
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function addSubIndex() {
+            state.subIndices.push({
+                id: "nuevo_" + (state.subIndices.length + 1),
+                label: "Nueva Categoría",
+                icon: "fa-star",
+                color: "#0284c7"
+            });
+            renderAdminSubIndices();
+            renderAdminGames();
+        }
+
+        // ================= 3. PÁGINA Y PESTAÑAS =================
+        function renderAdminSite() {
+            const s = state.site || (state.site = {});
+            const nav = s.navTabs || (s.navTabs = { catalogo: "Catálogo", guias: "Guías de Instalación", team: "El Team" });
+            const container = document.getElementById("admin-site-form");
+            container.innerHTML = `
+                <div class="field">
+                    <label>Nombre Marca (Parte 1 Blanca)</label>
+                    <input type="text" value="${escapeAttr(s.brandFirst || 'NX')}" oninput="state.site.brandFirst = this.value">
+                </div>
+                <div class="field">
+                    <label>Nombre Marca (Parte 2 Dorada)</label>
+                    <input type="text" value="${escapeAttr(s.brandHighlight || 'MASTERS')}" oninput="state.site.brandHighlight = this.value">
+                </div>
+                <div class="field">
+                    <label>Subtítulo bajo el Logo</label>
+                    <input type="text" value="${escapeAttr(s.subtitle || '')}" oninput="state.site.subtitle = this.value">
+                </div>
+                <div class="field">
+                    <label>Texto Botón Comunidad (Discord / WhatsApp)</label>
+                    <input type="text" value="${escapeAttr(s.communityLabel || '')}" oninput="state.site.communityLabel = this.value">
+                </div>
+                <div class="field full">
+                    <label>Link de Invitación a tu Comunidad (Discord / WhatsApp / Telegram)</label>
+                    <input type="url" value="${escapeAttr(s.communityUrl || '')}" oninput="state.site.communityUrl = this.value">
+                </div>
+                <div class="field">
+                    <label>Nombre Pestaña 1 (Catálogo)</label>
+                    <input type="text" value="${escapeAttr(nav.catalogo || 'Catálogo')}" oninput="state.site.navTabs.catalogo = this.value">
+                </div>
+                <div class="field">
+                    <label>Nombre Pestaña 2 (Guías)</label>
+                    <input type="text" value="${escapeAttr(nav.guias || 'Guías de Instalación')}" oninput="state.site.navTabs.guias = this.value">
+                </div>
+                <div class="field">
+                    <label>Nombre Pestaña 3 (Team)</label>
+                    <input type="text" value="${escapeAttr(nav.team || 'El Team')}" oninput="state.site.navTabs.team = this.value">
+                </div>
+                <div class="field">
+                    <label>Título Banner (Prefijo)</label>
+                    <input type="text" value="${escapeAttr(s.heroTitlePrefix || 'Bienvenidos a')}" oninput="state.site.heroTitlePrefix = this.value">
+                </div>
+                <div class="field">
+                    <label>Título Banner (Cinta Dorada)</label>
+                    <input type="text" value="${escapeAttr(s.heroRibbon || 'NXMASTERS')}" oninput="state.site.heroRibbon = this.value">
+                </div>
+                <div class="field full">
+                    <label>Descripción Principal del Banner</label>
+                    <textarea rows="3" oninput="state.site.heroDescription = this.value">${escapeHtml(s.heroDescription || '')}</textarea>
+                </div>
+                <div class="field full">
+                    <label>Etiquetas del Banner (Separadas por coma)</label>
+                    <input type="text" value="${escapeAttr((s.heroPills || []).join(', '))}" oninput="state.site.heroPills = this.value.split(',').map(x=>x.trim()).filter(Boolean)">
+                </div>
+            `;
+        }
+
+        // ================= 4. GUÍAS =================
+        function renderAdminGuides() {
+            const container = document.getElementById("admin-guides-list");
+            container.innerHTML = (state.guides || []).map((g, idx) => `
+                <div class="form-grid" style="background:rgba(17,8,32,0.85);padding:1.1rem;border-radius:14px;margin-bottom:0.85rem;border:1px solid rgba(168,85,247,0.25);">
+                    <div class="field">
+                        <label>Título de la Guía</label>
+                        <input type="text" value="${escapeAttr(g.title)}" oninput="state.guides[${idx}].title = this.value">
+                    </div>
+                    <div class="field">
+                        <label>Ícono (Ej: fa-bolt, fa-robot, fa-code-branch)</label>
+                        <input type="text" value="${escapeAttr(g.icon || 'fa-book')}" oninput="state.guides[${idx}].icon = this.value">
+                    </div>
+                    <div class="field full">
+                        <label>Pasos (Escribe 1 paso por cada línea)</label>
+                        <textarea rows="4" oninput="state.guides[${idx}].steps = this.value.split('\\n').map(x=>x.trim()).filter(Boolean)">${escapeHtml((g.steps || []).join('\n'))}</textarea>
+                    </div>
+                    <div>
+                        <button type="button" class="btn-action btn-danger" onclick="state.guides.splice(${idx},1);renderAdminGuides();"><i class="fa-solid fa-trash"></i> Eliminar Guía</button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function addGuide() {
+            state.guides.push({
+                title: "Nueva Guía de Instalación",
+                icon: "fa-screwdriver-wrench",
+                steps: ["Paso 1: Descarga desde TeraBox.", "Paso 2: Copia a la microSD."]
+            });
+            renderAdminGuides();
+        }
+
+        // ================= 5. TEAM =================
+        function renderAdminTeam() {
+            const container = document.getElementById("admin-team-list");
+            container.innerHTML = (state.team || []).map((m, idx) => `
+                <div class="form-grid" style="background:rgba(17,8,32,0.85);padding:1rem;border-radius:14px;margin-bottom:0.75rem;border:1px solid rgba(168,85,247,0.25);align-items:end;">
+                    <div class="field">
+                        <label>Emoji / Avatar</label>
+                        <input type="text" value="${escapeAttr(m.avatar)}" oninput="state.team[${idx}].avatar = this.value">
+                    </div>
+                    <div class="field">
+                        <label>Nombre / Nick</label>
+                        <input type="text" value="${escapeAttr(m.name)}" oninput="state.team[${idx}].name = this.value">
+                    </div>
+                    <div class="field">
+                        <label>Rol en NXMASTERS</label>
+                        <input type="text" value="${escapeAttr(m.role)}" oninput="state.team[${idx}].role = this.value">
+                    </div>
+                    <div class="field">
+                        <label>Especialidad</label>
+                        <input type="text" value="${escapeAttr(m.specialty)}" oninput="state.team[${idx}].specialty = this.value">
+                    </div>
+                    <div>
+                        <button type="button" class="btn-action btn-danger" onclick="state.team.splice(${idx},1);renderAdminTeam();"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function addTeamMember() {
+            state.team.push({
+                name: "Nuevo Miembro",
+                avatar: "🎮",
+                role: "Developer NX",
+                specialty: "Ports & Comunidad"
+            });
+            renderAdminTeam();
+        }
+
+        // ================= GENERACIÓN Y PUBLICACIÓN 24/7 =================
+        function buildDataJsString() {
+            return `/**\n * CONFIGURACIÓN GENERADA POR NXMASTERS STUDIO\n */\nwindow.NX_CONFIG = ${JSON.stringify(state, null, 4)};\nwindow.NX_GAMES = window.NX_CONFIG.games;\nwindow.NX_TEAM = window.NX_CONFIG.team;\n`;
+        }
+
+        function downloadDataJs() {
+            const blob = new Blob([buildDataJsString()], { type: "application/javascript;charset=utf-8" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "data.js";
+            a.click();
+            showToast("💾 Archivo data.js descargado");
+        }
+
+        async function publishToGitHub() {
+            const token = (document.getElementById("gh-token").value || localStorage.getItem("nxm_gh_token") || "").trim();
+            const repo = (document.getElementById("gh-repo").value || localStorage.getItem("nxm_gh_repo") || "Boss-Shifu/nxmasters").trim();
+
+            if (!token) {
+                showAdminSection("conexion");
+                showToast("⚠️ Ingresa tu Token o abre el panel desde Abrir-Editor-Visual.bat", true);
+                return;
+            }
+
+            const btn = document.getElementById("btn-save-cloud");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publicando en vivo...`;
+            btn.disabled = true;
+
+            try {
+                const apiUrl = `https://api.github.com/repos/${repo}/contents/data.js`;
+                const getRes = await fetch(apiUrl, {
+                    headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" }
+                });
+                let sha = undefined;
+                if (getRes.ok) {
+                    const info = await getRes.json();
+                    sha = info.sha;
+                }
+
+                const contentUtf8 = buildDataJsString();
+                const base64Content = btoa(unescape(encodeURIComponent(contentUtf8)));
+
+                const putRes = await fetch(apiUrl, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Accept": "application/vnd.github+json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: "Update catalog via NXMASTERS Visual Studio",
+                        content: base64Content,
+                        sha: sha,
+                        branch: "main"
+                    })
+                });
+
+                if (!putRes.ok) {
+                    const errText = await putRes.text();
+                    throw new Error(errText);
+                }
+
+                showToast("✅ ¡Publicado en vivo! En ~20 segundos se refleja en toda la web.");
+            } catch (err) {
+                console.error(err);
+                showToast("❌ Error al publicar en GitHub. Verifica la pestaña Conexión.", true);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function escapeAttr(str) {
+            return String(str || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+        function escapeHtml(str) {
+            return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>

@@ -1,7 +1,15 @@
 let currentFilter = "todos";
 
+function getConfig() {
+    // Si hay borrador local de prueba en este navegador, úsalo si se solicita; de lo contrario usa window.NX_CONFIG
+    return window.NX_CONFIG || { site: {}, subIndices: [], guides: [], team: [], games: [] };
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    renderSiteHeaderAndHero();
+    renderFilterTabs();
     renderCatalog();
+    renderGuides();
     renderTeam();
 
     const modal = document.getElementById("modal-juego");
@@ -11,6 +19,61 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+function renderSiteHeaderAndHero() {
+    const cfg = getConfig().site || {};
+    const brandNameEl = document.querySelector(".brand-name");
+    if (brandNameEl && cfg.brandFirst !== undefined) {
+        brandNameEl.innerHTML = `${cfg.brandFirst}<span class="brand-gold">${cfg.brandHighlight || ""}</span>`;
+    }
+    const brandSubEl = document.querySelector(".brand-sub");
+    if (brandSubEl && cfg.subtitle) brandSubEl.textContent = cfg.subtitle;
+
+    document.querySelectorAll(".brand-avatar, .hero-logo-card img").forEach(img => {
+        if (cfg.logoUrl) img.src = cfg.logoUrl;
+    });
+
+    const commBtn = document.querySelector(".community-btn");
+    if (commBtn) {
+        if (cfg.communityUrl) commBtn.href = cfg.communityUrl;
+        if (cfg.communityLabel) commBtn.innerHTML = `<i class="fa-brands fa-discord"></i> ${cfg.communityLabel}`;
+    }
+
+    if (cfg.navTabs) {
+        const btnCat = document.querySelector('[data-view="catalogo"]');
+        const btnGuias = document.querySelector('[data-view="guias"]');
+        const btnTeam = document.querySelector('[data-view="team"]');
+        if (btnCat && cfg.navTabs.catalogo) btnCat.innerHTML = `<i class="fa-solid fa-gamepad"></i> ${cfg.navTabs.catalogo}`;
+        if (btnGuias && cfg.navTabs.guias) btnGuias.innerHTML = `<i class="fa-solid fa-book-open"></i> ${cfg.navTabs.guias}`;
+        if (btnTeam && cfg.navTabs.team) btnTeam.innerHTML = `<i class="fa-solid fa-users-gear"></i> ${cfg.navTabs.team}`;
+    }
+
+    const heroTitle = document.querySelector(".hero-info h1");
+    if (heroTitle && cfg.heroTitlePrefix !== undefined) {
+        heroTitle.innerHTML = `${cfg.heroTitlePrefix} <span class="ribbon-tag">${cfg.heroRibbon || "NXMASTERS"}</span>`;
+    }
+    const heroDesc = document.querySelector(".hero-info p");
+    if (heroDesc && cfg.heroDescription) heroDesc.textContent = cfg.heroDescription;
+
+    const heroBadges = document.querySelector(".hero-badges");
+    if (heroBadges && Array.isArray(cfg.heroPills)) {
+        heroBadges.innerHTML = cfg.heroPills.map((pill, idx) =>
+            `<span class="tech-pill ${idx === 0 ? 'terabox' : ''}">${pill}</span>`
+        ).join("");
+    }
+}
+
+function renderFilterTabs() {
+    const container = document.getElementById("filter-tabs");
+    if (!container) return;
+    const subIndices = getConfig().subIndices || [];
+    const tabsHtml = subIndices.map(sub => `
+        <button type="button" class="filter-tab ${currentFilter === sub.id ? 'activo' : ''}" data-filter="${sub.id}" onclick="setFilter('${sub.id}')">
+            <i class="fa-solid ${sub.icon || 'fa-folder'}"></i> ${sub.label}
+        </button>
+    `).join("");
+    container.innerHTML = `${tabsHtml}<span id="game-count" class="count-badge">Cargando...</span>`;
+}
 
 function switchView(viewName, event) {
     if (event) event.preventDefault();
@@ -43,15 +106,10 @@ function getLangBadge(lang) {
 }
 
 function getTypeBadge(type, label) {
-    const icons = {
-        recomp: "fa-bolt",
-        port: "fa-cube",
-        wrapper: "fa-brands fa-android",
-        fork: "fa-code-branch"
-    };
-    const iconClass = icons[type] || "fa-gamepad";
-    const prefix = iconClass.startsWith("fa-brands") ? "" : "fa-solid ";
-    return `<span class="badge-type type-${type}"><i class="${prefix}${iconClass}"></i> ${label}</span>`;
+    const sub = (getConfig().subIndices || []).find(s => s.id === type);
+    const customColor = sub && sub.color ? `style="background:${sub.color};"` : "";
+    const icon = sub && sub.icon ? sub.icon : "fa-gamepad";
+    return `<span class="badge-type type-${type}" ${customColor}><i class="fa-solid ${icon}"></i> ${label || (sub ? sub.label : type)}</span>`;
 }
 
 function renderCatalog() {
@@ -60,7 +118,7 @@ function renderCatalog() {
     const searchInput = document.getElementById("search-input");
     const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
-    let list = (window.NX_GAMES || []).filter(game => {
+    let list = (getConfig().games || []).filter(game => {
         if (currentFilter === "espanol") return game.language === "es" || game.language === "multi";
         if (currentFilter !== "todos") return game.type === currentFilter;
         return true;
@@ -68,15 +126,18 @@ function renderCatalog() {
 
     if (query) {
         list = list.filter(g =>
-            g.title.toLowerCase().includes(query) ||
-            g.category.toLowerCase().includes(query) ||
-            g.typeLabel.toLowerCase().includes(query) ||
-            g.author.toLowerCase().includes(query) ||
+            (g.title || "").toLowerCase().includes(query) ||
+            (g.category || "").toLowerCase().includes(query) ||
+            (g.typeLabel || "").toLowerCase().includes(query) ||
+            (g.author || "").toLowerCase().includes(query) ||
             (g.engine || []).join(" ").toLowerCase().includes(query)
         );
     }
 
-    countBadge.textContent = `${list.length} ${list.length === 1 ? "proyecto disponible" : "proyectos disponibles"}`;
+    if (countBadge) {
+        countBadge.textContent = `${list.length} ${list.length === 1 ? "proyecto disponible" : "proyectos disponibles"}`;
+    }
+    if (!grid) return;
     grid.innerHTML = "";
 
     if (list.length === 0) {
@@ -103,18 +164,18 @@ function renderCatalog() {
             </div>
             <div class="card-body">
                 <div class="card-top">
-                    <span class="chip-cat">${game.category}</span>
-                    <span class="credit-porter" title="Desarrollado / Adaptado por ${game.author}">
-                        <i class="fa-solid fa-user-astronaut"></i> ${game.author}
+                    <span class="chip-cat">${game.category || "Switch"}</span>
+                    <span class="credit-porter" title="Desarrollado / Adaptado por ${game.author || 'NXMasters'}">
+                        <i class="fa-solid fa-user-astronaut"></i> ${game.author || "NXMasters"}
                     </span>
                 </div>
                 <h3 class="card-title">${game.title}</h3>
                 <div class="card-specs">
-                    <span class="spec" title="Arquitectura"><i class="fa-solid fa-microchip"></i> ${game.arch}</span>
+                    <span class="spec" title="Arquitectura"><i class="fa-solid fa-microchip"></i> ${game.arch || "ARM64"}</span>
                     ${game.size ? `<span class="spec" title="Peso aproximado"><i class="fa-solid fa-hard-drive"></i> ${game.size}</span>` : ""}
                 </div>
                 <div class="card-actions">
-                    <a href="${game.teraboxLink}" target="_blank" rel="noopener" class="btn-terabox" title="Descargar directo desde TeraBox">
+                    <a href="${game.teraboxLink || '#'}" target="_blank" rel="noopener" class="btn-terabox" title="Descargar directo desde TeraBox">
                         <i class="fa-solid fa-cloud-arrow-down"></i> TeraBox
                     </a>
                     <button type="button" class="btn-info" onclick="openGameModal(${game.id})" title="Ver ficha técnica e instrucciones">
@@ -128,7 +189,7 @@ function renderCatalog() {
 }
 
 function openGameModal(id) {
-    const game = (window.NX_GAMES || []).find(g => g.id === id);
+    const game = (getConfig().games || []).find(g => String(g.id) === String(id));
     if (!game) return;
 
     const modal = document.getElementById("modal-juego");
@@ -150,12 +211,12 @@ function openGameModal(id) {
         </div>
 
         <p style="color:var(--text-muted);font-size:0.92rem;line-height:1.6;margin-bottom:1.1rem;">
-            ${game.description}
+            ${game.description || ""}
         </p>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.65rem;margin-bottom:1.25rem;background:rgba(0,0,0,0.28);padding:0.9rem;border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
-            <div><span style="font-size:0.72rem;color:var(--text-dim);display:block;">Arquitectura</span><strong>${game.arch}</strong></div>
-            <div><span style="font-size:0.72rem;color:var(--text-dim);display:block;">Entorno / Motor</span><strong>${builds}</strong></div>
+            <div><span style="font-size:0.72rem;color:var(--text-dim);display:block;">Arquitectura</span><strong>${game.arch || "N/A"}</strong></div>
+            <div><span style="font-size:0.72rem;color:var(--text-dim);display:block;">Entorno / Motor</span><strong>${builds || "Estándar"}</strong></div>
             <div><span style="font-size:0.72rem;color:var(--text-dim);display:block;">Tamaño</span><strong>${game.size || "N/A"}</strong></div>
             <div><span style="font-size:0.72rem;color:var(--text-dim);display:block;">Servidor</span><strong style="color:#38bdf8;">TeraBox Directo</strong></div>
         </div>
@@ -173,12 +234,28 @@ function openGameModal(id) {
     modal.showModal();
 }
 
+function renderGuides() {
+    const grid = document.querySelector("#view-guias .guide-grid");
+    if (!grid) return;
+    const guides = getConfig().guides || [];
+    grid.innerHTML = guides.map(g => `
+        <div class="guide-card">
+            <h3><i class="fa-solid ${g.icon || 'fa-book'}"></i> ${g.title}</h3>
+            <ol class="guide-steps">
+                ${(g.steps || []).map((s, i) => `
+                    <li><span class="step-num">${i + 1}</span><span>${s}</span></li>
+                `).join("")}
+            </ol>
+        </div>
+    `).join("");
+}
+
 function renderTeam() {
     const grid = document.getElementById("team-grid");
     if (!grid) return;
-    grid.innerHTML = (window.NX_TEAM || []).map(member => `
+    grid.innerHTML = (getConfig().team || []).map(member => `
         <div class="member-card">
-            <div class="member-icon">${member.avatar}</div>
+            <div class="member-icon">${member.avatar || "🎮"}</div>
             <div>
                 <h3 style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.05rem;color:#fff;">${member.name}</h3>
                 <p style="font-size:0.76rem;color:#fde047;font-weight:700;">${member.role}</p>
