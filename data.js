@@ -13,7 +13,7 @@ window.NX_CONFIG = {
         subtitle: "Gaming Zone • Switch Scene",
         logoUrl: "assets/nxmasters_logo.jpg",
         communityLabel: "Unirse a WhatsApp",
-        communityUrl: "https://chat.whatsapp.com/",
+        communityUrl: "https://chat.whatsapp.com/L4F3hVRTHtdAn8JWwnv4HG",
         heroTitlePrefix: "Bienvenidos a",
         heroRibbon: "NXMASTERS",
         heroDescription: "Evolucionamos de hacer forks a dominar el ecosistema completo de Nintendo Switch (Atmosphère): Recompilaciones Estáticas, Ports Nativos (.nro), Wrappers Android32 y Forks optimizados con Autorun / WineNX, además de grupos de ayuda y partidas multijugador entre toda la comunidad.",
