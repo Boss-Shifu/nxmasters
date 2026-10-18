@@ -5,12 +5,32 @@ function getConfig() {
     return window.NX_CONFIG || { site: {}, subIndices: [], guides: [], team: [], games: [] };
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     renderSiteHeaderAndHero();
     renderFilterTabs();
     renderCatalog();
     renderGuides();
     renderTeam();
+
+    // Sincronización instantánea con los últimos cambios publicados por el Staff
+    try {
+        const res = await fetch(`https://api.github.com/repos/Boss-Shifu/nxmasters/contents/data.js?t=${Date.now()}`, {
+            headers: { "Accept": "application/vnd.github+json" }
+        });
+        if (res.ok) {
+            const info = await res.json();
+            const decoded = decodeURIComponent(escape(atob(info.content.replace(/\s/g, ""))));
+            const match = decoded.match(/window\.NX_CONFIG\s*=\s*(\{[\s\S]*?\});\s*window\.NX_GAMES/);
+            if (match && match[1]) {
+                window.NX_CONFIG = JSON.parse(match[1]);
+                renderSiteHeaderAndHero();
+                renderFilterTabs();
+                renderCatalog();
+                renderGuides();
+                renderTeam();
+            }
+        }
+    } catch (e) {}
 
     const modal = document.getElementById("modal-juego");
     if (modal) {
@@ -36,7 +56,8 @@ function renderSiteHeaderAndHero() {
     const commBtn = document.querySelector(".community-btn");
     if (commBtn) {
         if (cfg.communityUrl) commBtn.href = cfg.communityUrl;
-        if (cfg.communityLabel) commBtn.innerHTML = `<i class="fa-brands fa-discord"></i> ${cfg.communityLabel}`;
+        const label = cfg.communityLabel || "Unirse a WhatsApp";
+        commBtn.innerHTML = `<i class="fa-brands fa-whatsapp" style="font-size:1.08rem;"></i> ${label}`;
     }
 
     if (cfg.navTabs) {
