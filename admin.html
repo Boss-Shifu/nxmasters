@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NXMASTERS Studio — Editor Visual de la Página</title>
+    <title>NXMASTERS Studio — Panel Exclusivo del Staff</title>
     <link rel="icon" type="image/jpeg" href="assets/nxmasters_logo.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,6 +11,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
+        /* PANTALLA DE CANDADO PARA EXTRAÑOS */
+        .staff-lock-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: radial-gradient(circle at 50% 30%, rgba(192, 38, 211, 0.28), #090410 75%);
+            backdrop-filter: blur(18px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .lock-card {
+            background: var(--surface-2);
+            border: 2px solid var(--banner-gold);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.85), 0 0 36px rgba(192, 38, 211, 0.4);
+        }
+        .lock-card img {
+            width: 96px;
+            height: 96px;
+            border-radius: 20px;
+            border: 2px solid var(--banner-gold);
+            margin-bottom: 1rem;
+            object-fit: cover;
+        }
         .admin-layout {
             max-width: 1580px;
             margin: 0 auto;
@@ -194,7 +224,7 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            z-index: 200;
+            z-index: 600;
             padding: 0.85rem 1.25rem;
             border-radius: 14px;
             background: #16a34a;
@@ -214,6 +244,26 @@
 </head>
 <body>
 
+    <!-- CANDADO DE SEGURIDAD PARA EL STAFF -->
+    <div id="staff-lock" class="staff-lock-overlay">
+        <div class="lock-card">
+            <img src="assets/nxmasters_logo.jpg" alt="NXMASTERS">
+            <h2 style="font-family:'Outfit',sans-serif;font-weight:900;font-size:1.5rem;color:#fff;margin-bottom:0.35rem;">
+                <i class="fa-solid fa-shield-halved" style="color:var(--banner-gold);"></i> Acceso Staff NXMASTERS
+            </h2>
+            <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:1.25rem;">
+                Ingresa la clave del equipo para desbloquear el estudio visual y publicar cambios en vivo.
+            </p>
+            <div class="field" style="margin-bottom:1rem;text-align:left;">
+                <label>Clave del Staff</label>
+                <input type="password" id="staff-pass-input" placeholder="Ingresa la clave del Staff..." onkeydown="if(event.key==='Enter') unlockWithStaffPass()">
+            </div>
+            <button type="button" class="btn-action btn-publish" style="width:100%;padding:0.75rem;" onclick="unlockWithStaffPass()">
+                <i class="fa-solid fa-unlock-keyhole"></i> Entrar al Estudio Visual
+            </button>
+        </div>
+    </div>
+
     <!-- BARRA SUPERIOR DEL ESTUDIO VISUAL -->
     <header class="glass-header">
         <div class="site-bar">
@@ -221,7 +271,7 @@
                 <img src="assets/nxmasters_logo.jpg" alt="Logo" class="brand-avatar">
                 <div class="brand-title-wrap">
                     <span class="brand-name">NX<span class="brand-gold">STUDIO</span></span>
-                    <span class="brand-sub">Panel de Administración Visual</span>
+                    <span class="brand-sub">Panel Compartido del Staff</span>
                 </div>
             </a>
 
@@ -229,9 +279,6 @@
                 <a href="index.html" target="_blank" class="btn-action btn-soft" style="text-decoration:none;">
                     <i class="fa-solid fa-eye"></i> Ver Página Pública
                 </a>
-                <button type="button" class="btn-action btn-soft" onclick="downloadDataJs()">
-                    <i class="fa-solid fa-file-arrow-down"></i> Descargar data.js
-                </button>
                 <button type="button" class="btn-action btn-publish" id="btn-save-cloud" onclick="publishToGitHub()">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Publicar Cambios en Vivo (24/7)
                 </button>
@@ -257,9 +304,6 @@
             <button type="button" class="side-btn" data-sec="team" onclick="showAdminSection('team')">
                 <i class="fa-solid fa-users"></i> El Team (Integrantes)
             </button>
-            <button type="button" class="side-btn" data-sec="conexion" onclick="showAdminSection('conexion')">
-                <i class="fa-solid fa-key"></i> Conexión GitHub 24/7
-            </button>
         </aside>
 
         <!-- PANEL CENTRAL -->
@@ -274,7 +318,7 @@
                     </button>
                 </div>
                 <p style="color:var(--text-muted);font-size:0.86rem;margin-bottom:1rem;">
-                    Modifica cualquier dato en tiempo real. Puedes pegar el link de una carátula o pulsar <strong>"Subir Imagen"</strong> para cargar una foto desde tu PC/celular. Al terminar, pulsa el botón dorado <strong>"Publicar Cambios en Vivo"</strong> arriba a la derecha.
+                    Cualquier miembro del Staff puede agregar juegos, subir carátulas desde su PC/celular y pegar sus links directos de <strong>TeraBox</strong>. Al terminar, pulsa el botón dorado <strong>"Publicar Cambios en Vivo (24/7)"</strong> arriba a la derecha.
                 </p>
                 <div id="admin-games-list"></div>
             </section>
@@ -288,7 +332,7 @@
                     </button>
                 </div>
                 <p style="color:var(--text-muted);font-size:0.86rem;margin-bottom:1rem;">
-                    Aquí puedes crear nuevos sub-índices (por ejemplo: <em>DLCs</em>, <em>Mods</em>, <em>Parches</em>, <em>Emuladores</em>), cambiarles el nombre, el color de la etiqueta o el ícono FontAwesome.
+                    Crea nuevos sub-índices (por ejemplo: <em>DLCs</em>, <em>Mods</em>, <em>Parches</em>, <em>Emuladores</em>), cámbiales el nombre, el color de la etiqueta o el ícono.
                 </p>
                 <div id="admin-subindices-list"></div>
             </section>
@@ -323,26 +367,6 @@
                 <div id="admin-team-list"></div>
             </section>
 
-            <!-- SECCIÓN 6: CONEXIÓN GITHUB -->
-            <section id="sec-conexion" class="hidden">
-                <div class="panel-header">
-                    <h2><i class="fa-solid fa-key" style="color:var(--banner-gold);"></i> Conexión Directa con GitHub (`Boss-Shifu/nxmasters`)</h2>
-                </div>
-                <div class="form-grid">
-                    <div class="field full">
-                        <label>Repositorio de Destino (Usuario/Repo)</label>
-                        <input type="text" id="gh-repo" value="Boss-Shifu/nxmasters" onchange="saveCreds()">
-                    </div>
-                    <div class="field full">
-                        <label>Token de Acceso de GitHub (Se guarda de forma segura solo en tu navegador)</label>
-                        <input type="password" id="gh-token" placeholder="gho_xxxxxxxxxxxx o ghp_xxxxxxxxxxxx" onchange="saveCreds()">
-                        <small style="color:var(--text-dim);margin-top:0.35rem;">
-                            💡 Si abres este panel con el acceso directo <strong>Abrir-Editor-Visual.bat</strong> de tu carpeta <code>WEB NXMasters</code>, el token se conecta automáticamente sin que tengas que escribir nada.
-                        </small>
-                    </div>
-                </div>
-            </section>
-
         </main>
     </div>
 
@@ -350,28 +374,76 @@
 
     <script src="data.js"></script>
     <script>
+        // Bóveda cifrada con SHA-256 para que todo el Staff con el link/clave pueda publicar sin exponer el token en texto plano
+        const STAFF_VAULT_B64 = "bChvva3HHfh2Hms+kW8psStxq6EmK1y3DITZDQ4qZKNJcjSkvvAt0Q==";
+        const DEFAULT_REPO = "Boss-Shifu/nxmasters";
         let state = JSON.parse(JSON.stringify(window.NX_CONFIG));
 
-        document.addEventListener("DOMContentLoaded", () => {
-            // Si viene token por hash desde Abrir-Editor-Visual.bat, guardarlo en localStorage y limpiar la URL
-            if (window.location.hash.startsWith("#token=")) {
+        async function decryptVault(passphrase) {
+            const enc = new TextEncoder();
+            const hashBuf = await crypto.subtle.digest("SHA-256", enc.encode(passphrase));
+            const keyBytes = new Uint8Array(hashBuf);
+            const raw = atob(STAFF_VAULT_B64);
+            const out = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) {
+                out[i] = raw.charCodeAt(i) ^ keyBytes[i % keyBytes.length];
+            }
+            return new TextDecoder().decode(out);
+        }
+
+        async function unlockWithStaffPass(customPass) {
+            const pass = (customPass || document.getElementById("staff-pass-input").value || "").trim();
+            if (!pass) return;
+            try {
+                const candidate = await decryptVault(pass);
+                if (candidate.startsWith("gho_") || candidate.startsWith("ghp_")) {
+                    localStorage.setItem("nxm_gh_token", candidate);
+                    document.getElementById("staff-lock").style.display = "none";
+                    showToast("🔓 Acceso Staff desbloqueado — Ya puedes editar y publicar");
+                    return true;
+                }
+            } catch (e) {}
+            if (!customPass) showToast("❌ Clave de Staff incorrecta", true);
+            return false;
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            // 1. Si el link trae #staff=CLAVE, desbloquea automáticamente para cualquier miembro del Staff
+            if (window.location.hash.startsWith("#staff=")) {
+                const staffKey = decodeURIComponent(window.location.hash.replace("#staff=", "").trim());
+                const ok = await unlockWithStaffPass(staffKey);
+                if (ok) history.replaceState(null, "", window.location.pathname);
+            } else if (window.location.hash.startsWith("#token=")) {
                 const tok = decodeURIComponent(window.location.hash.replace("#token=", "").trim());
                 if (tok) {
                     localStorage.setItem("nxm_gh_token", tok);
+                    document.getElementById("staff-lock").style.display = "none";
                     history.replaceState(null, "", window.location.pathname);
-                    showToast("🔑 Conectado automáticamente a tu cuenta Boss-Shifu");
+                }
+            } else {
+                const saved = localStorage.getItem("nxm_gh_token") || "";
+                if (saved.startsWith("gho_") || saved.startsWith("ghp_")) {
+                    document.getElementById("staff-lock").style.display = "none";
                 }
             }
-            document.getElementById("gh-token").value = localStorage.getItem("nxm_gh_token") || "";
-            document.getElementById("gh-repo").value = localStorage.getItem("nxm_gh_repo") || "Boss-Shifu/nxmasters";
+
+            // Cargar siempre la versión más reciente desde GitHub para que los cambios de otros miembros del Staff aparezcan al instante
+            try {
+                const res = await fetch(`https://api.github.com/repos/${DEFAULT_REPO}/contents/data.js?t=${Date.now()}`, {
+                    headers: { "Accept": "application/vnd.github+json" }
+                });
+                if (res.ok) {
+                    const info = await res.json();
+                    const decoded = decodeURIComponent(escape(atob(info.content.replace(/\s/g, ""))));
+                    const match = decoded.match(/window\.NX_CONFIG\s*=\s*(\{[\s\S]*?\});\s*window\.NX_GAMES/);
+                    if (match && match[1]) {
+                        state = JSON.parse(match[1]);
+                    }
+                }
+            } catch (e) {}
 
             renderAllAdmin();
         });
-
-        function saveCreds() {
-            localStorage.setItem("nxm_gh_token", document.getElementById("gh-token").value.trim());
-            localStorage.setItem("nxm_gh_repo", document.getElementById("gh-repo").value.trim());
-        }
 
         function showToast(msg, isError = false) {
             const t = document.getElementById("toast");
@@ -382,7 +454,7 @@
         }
 
         function showAdminSection(sec) {
-            ["juegos", "subindices", "pagina", "guias", "team", "conexion"].forEach(s => {
+            ["juegos", "subindices", "pagina", "guias", "team"].forEach(s => {
                 document.getElementById(`sec-${s}`).classList.toggle("hidden", s !== sec);
             });
             document.querySelectorAll(".admin-sidebar .side-btn").forEach(b => {
@@ -490,9 +562,8 @@
         }
 
         function addNewGame() {
-            const nextId = Date.now();
             state.games.unshift({
-                id: nextId,
+                id: Date.now(),
                 title: "Nuevo Proyecto NXMasters",
                 type: "fork",
                 typeLabel: "Fork Autorun",
@@ -526,7 +597,6 @@
             renderAdminGames();
         }
 
-        // Compresión de carátula en cliente para guardarla lista sin servidores externos
         function handleCoverUpload(idx, inputEl) {
             const file = inputEl.files && inputEl.files[0];
             if (!file) return;
@@ -723,27 +793,16 @@
             renderAdminTeam();
         }
 
-        // ================= GENERACIÓN Y PUBLICACIÓN 24/7 =================
+        // ================= PUBLICACIÓN 24/7 PARA TODO EL STAFF =================
         function buildDataJsString() {
             return `/**\n * CONFIGURACIÓN GENERADA POR NXMASTERS STUDIO\n */\nwindow.NX_CONFIG = ${JSON.stringify(state, null, 4)};\nwindow.NX_GAMES = window.NX_CONFIG.games;\nwindow.NX_TEAM = window.NX_CONFIG.team;\n`;
         }
 
-        function downloadDataJs() {
-            const blob = new Blob([buildDataJsString()], { type: "application/javascript;charset=utf-8" });
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = "data.js";
-            a.click();
-            showToast("💾 Archivo data.js descargado");
-        }
-
         async function publishToGitHub() {
-            const token = (document.getElementById("gh-token").value || localStorage.getItem("nxm_gh_token") || "").trim();
-            const repo = (document.getElementById("gh-repo").value || localStorage.getItem("nxm_gh_repo") || "Boss-Shifu/nxmasters").trim();
-
+            const token = (localStorage.getItem("nxm_gh_token") || "").trim();
             if (!token) {
-                showAdminSection("conexion");
-                showToast("⚠️ Ingresa tu Token o abre el panel desde Abrir-Editor-Visual.bat", true);
+                document.getElementById("staff-lock").style.display = "flex";
+                showToast("🔒 Ingresa primero la clave del Staff", true);
                 return;
             }
 
@@ -753,7 +812,7 @@
             btn.disabled = true;
 
             try {
-                const apiUrl = `https://api.github.com/repos/${repo}/contents/data.js`;
+                const apiUrl = `https://api.github.com/repos/${DEFAULT_REPO}/contents/data.js`;
                 const getRes = await fetch(apiUrl, {
                     headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" }
                 });
@@ -774,7 +833,7 @@
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        message: "Update catalog via NXMASTERS Visual Studio",
+                        message: "Update catalog via NXMASTERS Staff Studio",
                         content: base64Content,
                         sha: sha,
                         branch: "main"
@@ -782,14 +841,13 @@
                 });
 
                 if (!putRes.ok) {
-                    const errText = await putRes.text();
-                    throw new Error(errText);
+                    throw new Error(await putRes.text());
                 }
 
-                showToast("✅ ¡Publicado en vivo! En ~20 segundos se refleja en toda la web.");
+                showToast("✅ ¡Publicado en vivo por el Staff! En ~20s se actualiza para todos.");
             } catch (err) {
                 console.error(err);
-                showToast("❌ Error al publicar en GitHub. Verifica la pestaña Conexión.", true);
+                showToast("❌ Error al publicar. Verifica tu conexión.", true);
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
