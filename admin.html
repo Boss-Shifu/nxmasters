@@ -478,10 +478,14 @@
             container.innerHTML = (state.games || []).map((g, idx) => `
                 <div class="editor-card">
                     <div class="cover-preview-box">
-                        <img src="${g.image || 'assets/nxmasters_logo.jpg'}" id="preview-img-${idx}" onerror="this.src='assets/nxmasters_logo.jpg'">
-                        <label class="btn-action btn-soft" style="width:100%;font-size:0.75rem;padding:0.4rem;cursor:pointer;">
-                            <i class="fa-solid fa-upload"></i> Subir Carátula
-                            <input type="file" accept="image/*" style="display:none;" onchange="handleCoverUpload(${idx}, this)">
+                        <img src="${g.image || 'assets/nxmasters_logo.jpg'}" id="preview-img-${idx}" style="object-fit:${g.fitMode === 'contain' ? 'contain' : 'cover'};" onerror="this.src='assets/nxmasters_logo.jpg'">
+                        <label class="btn-action btn-soft" style="width:100%;font-size:0.75rem;padding:0.4rem;cursor:pointer;" title="Redimensiona automáticamente al formato 2:3 sin deformar">
+                            <i class="fa-solid fa-upload"></i> Subir Carátula (Auto 2:3)
+                            <input type="file" accept="image/*" style="display:none;" onchange="handleCoverUpload(${idx}, this, 'cover')">
+                        </label>
+                        <label class="btn-action btn-soft" style="width:100%;font-size:0.71rem;padding:0.35rem;cursor:pointer;" title="Ideal para íconos cuadrados o imágenes horizontales: rellena el fondo con blur sin recortar bordes">
+                            <i class="fa-solid fa-expand"></i> Subir sin Recortar (Blur)
+                            <input type="file" accept="image/*" style="display:none;" onchange="handleCoverUpload(${idx}, this, 'blur-fit')">
                         </label>
                         <div style="display:flex;gap:0.35rem;width:100%;">
                             <button type="button" class="btn-action btn-soft" style="flex:1;padding:0.35rem;" onclick="moveGame(${idx}, -1)" title="Subir"><i class="fa-solid fa-arrow-up"></i></button>
@@ -534,7 +538,7 @@
                             </select>
                         </div>
                         <div class="field">
-                            <label>URL de Carátula (o usa el botón Subir Carátula)</label>
+                            <label>URL de Carátula (Se auto-ajusta sola al marco 2:3)</label>
                             <input type="text" id="img-input-${idx}" value="${escapeAttr(g.image)}" oninput="state.games[${idx}].image = this.value; document.getElementById('preview-img-${idx}').src = this.value">
                         </div>
                         <div class="field">
@@ -597,29 +601,53 @@
             renderAdminGames();
         }
 
-        function handleCoverUpload(idx, inputEl) {
+        // Auto-redimensionado inteligente a formato exacto 2:3 (480x720) CERO distorsión
+        function handleCoverUpload(idx, inputEl, mode = "cover") {
             const file = inputEl.files && inputEl.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
+                    const TARGET_W = 480;
+                    const TARGET_H = 720;
                     const canvas = document.createElement("canvas");
-                    const maxW = 480;
-                    const maxH = 720;
-                    let w = img.width;
-                    let h = img.height;
-                    if (w > maxW) { h = Math.round(h * (maxW / w)); w = maxW; }
-                    if (h > maxH) { w = Math.round(w * (maxH / h)); h = maxH; }
-                    canvas.width = w;
-                    canvas.height = h;
+                    canvas.width = TARGET_W;
+                    canvas.height = TARGET_H;
                     const ctx = canvas.getContext("2d");
-                    ctx.drawImage(img, 0, 0, w, h);
-                    const dataUrl = canvas.toDataURL("image/jpeg", 0.84);
+
+                    // 1. Pintar fondo relleno proporcional difuminado para que jamás queden bordes vacíos
+                    const bgScale = Math.max(TARGET_W / img.width, TARGET_H / img.height);
+                    const bgW = img.width * bgScale;
+                    const bgH = img.height * bgScale;
+                    const bgX = (TARGET_W - bgW) / 2;
+                    const bgY = (TARGET_H - bgH) / 2;
+
+                    if (mode === "blur-fit") {
+                        ctx.save();
+                        ctx.filter = "blur(20px) brightness(0.55)";
+                        ctx.drawImage(img, bgX - 20, bgY - 20, bgW + 40, bgH + 40);
+                        ctx.restore();
+
+                        // Encajar imagen completa al centro manteniendo proporción 1:1 exacta
+                        const fitScale = Math.min(TARGET_W / img.width, TARGET_H / img.height);
+                        const fgW = img.width * fitScale;
+                        const fgH = img.height * fitScale;
+                        const fgX = (TARGET_W - fgW) / 2;
+                        const fgY = (TARGET_H - fgH) / 2;
+                        ctx.drawImage(img, fgX, fgY, fgW, fgH);
+                    } else {
+                        // Modo 'cover': Llenar el formato 480x720 escalando proporcionalmente desde el centro sin estirar ni deformar
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = "high";
+                        ctx.drawImage(img, bgX, bgY, bgW, bgH);
+                    }
+
+                    const dataUrl = canvas.toDataURL("image/jpeg", 0.86);
                     state.games[idx].image = dataUrl;
                     document.getElementById(`preview-img-${idx}`).src = dataUrl;
                     document.getElementById(`img-input-${idx}`).value = dataUrl;
-                    showToast("🖼️ Carátula cargada y optimizada");
+                    showToast("🖼️ Carátula auto-redimensionada a 480x720 (2:3) sin distorsión");
                 };
                 img.src = e.target.result;
             };
