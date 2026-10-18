@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NXMASTERS — Recompilaciones Estáticas, Ports, Wrappers y Forks para Nintendo Switch</title>
+    <meta name="description" content="Comunidad oficial de NXMASTERS. Descarga directa por TeraBox de recompilaciones estáticas, ports nativos, wrappers Android32 y forks WineNX/Autorun para Nintendo Switch.">
+    <link rel="icon" type="image/jpeg" href="assets/nxmasters_logo.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Manrope:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- CABECERA NEÓN -->
+    <header class="glass-header">
+        <nav class="site-bar" aria-label="Navegación Principal">
+            <a href="#" onclick="switchView('catalogo', event)" class="brand">
+                <img src="assets/nxmasters_logo.jpg" alt="Logo NXMASTERS" class="brand-avatar">
+                <div class="brand-title-wrap">
+                    <span class="brand-name">NX<span class="brand-gold">MASTERS</span></span>
+                    <span class="brand-sub">Gaming Zone • Switch Scene</span>
+                </div>
+            </a>
+
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" id="search-input" class="glow-input" placeholder="Buscar juego, motor (Autorun, Android32, Recomp) o autor..." oninput="renderCatalog()">
+            </div>
+
+            <div class="site-links">
+                <button type="button" class="nav-pill nav-active" data-view="catalogo" onclick="switchView('catalogo', event)">
+                    <i class="fa-solid fa-gamepad"></i> Catálogo
+                </button>
+                <button type="button" class="nav-pill" data-view="guias" onclick="switchView('guias', event)">
+                    <i class="fa-solid fa-book-open"></i> Guías de Instalación
+                </button>
+                <button type="button" class="nav-pill" data-view="team" onclick="switchView('team', event)">
+                    <i class="fa-solid fa-users-gear"></i> El Team (6)
+                </button>
+            </div>
+
+            <a href="#comunidad" onclick="switchView('team', event)" class="community-btn">
+                <i class="fa-brands fa-discord"></i> Unirse a la Comunidad
+            </a>
+        </nav>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-wrap">
+
+        <!-- HERO BANNER CON EL LOGO OFICIAL DE 6 INTEGRANTES -->
+        <section class="hero-banner">
+            <div class="hero-logo-card" title="NXMASTERS Squad">
+                <img src="assets/nxmasters_logo.jpg" alt="Equipo NXMASTERS">
+            </div>
+            <div class="hero-info">
+                <h1>
+                    Bienvenidos a <span class="ribbon-tag">NXMASTERS</span>
+                </h1>
+                <p>
+                    Evolucionamos de hacer forks a dominar el ecosistema completo de <strong>Nintendo Switch (Atmosphère)</strong>:
+                    <strong>Recompilaciones Estáticas</strong>, <strong>Ports Nativos (.nro)</strong>, <strong>Wrappers Android32</strong> y <strong>Forks optimizados con Autorun / WineNX</strong>, además de grupos de ayuda y partidas multijugador entre toda la comunidad.
+                </p>
+                <div class="hero-badges">
+                    <span class="tech-pill terabox"><i class="fa-solid fa-cloud-arrow-down"></i> Enlaces Directos en TeraBox</span>
+                    <span class="tech-pill"><i class="fa-solid fa-microchip"></i> Recompilaciones Estáticas</span>
+                    <span class="tech-pill"><i class="fa-brands fa-android"></i> Wrappers Android32</span>
+                    <span class="tech-pill"><i class="fa-solid fa-code-branch"></i> Forks WineNX & Autorun</span>
+                    <span class="tech-pill"><i class="fa-solid fa-headset"></i> Soporte & Multiplayer</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 1: CATÁLOGO DE LANZAMIENTOS -->
+        <section id="view-catalogo">
+            <div class="filters-bar" id="filter-tabs">
+                <button type="button" class="filter-tab activo" data-filter="todos" onclick="setFilter('todos')">
+                    <i class="fa-solid fa-layer-group"></i> Todos
+                </button>
+                <button type="button" class="filter-tab" data-filter="recomp" onclick="setFilter('recomp')">
+                    <i class="fa-solid fa-bolt"></i> Recomp Estática
+                </button>
+                <button type="button" class="filter-tab" data-filter="port" onclick="setFilter('port')">
+                    <i class="fa-solid fa-cube"></i> Ports Nativos
+                </button>
+                <button type="button" class="filter-tab" data-filter="wrapper" onclick="setFilter('wrapper')">
+                    <i class="fa-brands fa-android"></i> Wrappers
+                </button>
+                <button type="button" class="filter-tab" data-filter="fork" onclick="setFilter('fork')">
+                    <i class="fa-solid fa-code-branch"></i> Forks Autorun
+                </button>
+                <button type="button" class="filter-tab" data-filter="espanol" onclick="setFilter('espanol')">
+                    <i class="fa-solid fa-language"></i> En Español
+                </button>
+                <span id="game-count" class="count-badge">Cargando...</span>
+            </div>
+
+            <div id="games-grid" class="games-grid"></div>
+        </section>
+
+        <!-- VISTA 2: GUÍAS DE INSTALACIÓN POR TIPO DE PROYECTO -->
+        <section id="view-guias" class="hidden">
+            <h2 style="font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:900;margin-bottom:0.4rem;">
+                <i class="fa-solid fa-screwdriver-wrench" style="color:var(--banner-gold);"></i> Guías Rápidas de Instalación en Switch
+            </h2>
+            <p style="color:var(--text-muted);font-size:0.9rem;">
+                Cada lanzamiento de NXMASTERS indica su arquitectura en la esquina superior derecha de la portada. Sigue los pasos según el tipo de proyecto descargado desde TeraBox:
+            </p>
+
+            <div class="guide-grid">
+                <div class="guide-card">
+                    <h3><i class="fa-solid fa-bolt"></i> Ports Nativos & Recompilaciones Estáticas</h3>
+                    <ol class="guide-steps">
+                        <li><span class="step-num">1</span><span>Descarga el archivo <code>.zip</code> directo desde el botón azul de <strong>TeraBox</strong>.</span></li>
+                        <li><span class="step-num">2</span><span>Extrae la carpeta dentro de <code>sdmc:/switch/&lt;nombre-del-juego&gt;/</code> en tu microSD.</span></li>
+                        <li><span class="step-num">3</span><span>Inicia el <strong>hbmenu</strong> en modo <em>Title Takeover</em> (manteniendo pulsado <strong>R</strong> al abrir cualquier juego).</span></li>
+                        <li><span class="step-num">4</span><span>Ejecuta el archivo <code>.nro</code> o usa el forwarder incluido para abrirlo desde el menú Home.</span></li>
+                    </ol>
+                </div>
+
+                <div class="guide-card">
+                    <h3><i class="fa-brands fa-android"></i> Wrappers (Android32 / GLES)</h3>
+                    <ol class="guide-steps">
+                        <li><span class="step-num">1</span><span>Descarga el paquete del wrapper desde <strong>TeraBox</strong> y descomprímelo en la raíz de tu microSD.</span></li>
+                        <li><span class="step-num">2</span><span>Verifica que las librerías <code>.so</code> y assets queden en su ruta de <code>/switch/</code> correspondiente.</span></li>
+                        <li><span class="step-num">3</span><span>Ábrelo desde <strong>Sphaira / hbmenu</strong> con toda la RAM disponible (<em>Applet Mode NO soportado</em>).</span></li>
+                    </ol>
+                </div>
+
+                <div class="guide-card">
+                    <h3><i class="fa-solid fa-code-branch"></i> Forks (WineNX / Autorun PC)</h3>
+                    <ol class="guide-steps">
+                        <li><span class="step-num">1</span><span>Descarga el fork desde <strong>TeraBox</strong> y descomprime la carpeta en <code>/switch</code> de tu microSD.</span></li>
+                        <li><span class="step-num">2</span><span>Entra al <strong>hbmenu</strong> manteniendo presionado <strong>R</strong> sobre cualquier juego instalado.</span></li>
+                        <li><span class="step-num">3</span><span>Al abrir el fork te preguntará si deseas crear el acceso directo en el menú Home: pulsa <strong>Aceptar (+)</strong> y listo.</span></li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 3: EL TEAM NXMASTERS & COMUNIDAD -->
+        <section id="view-team" class="hidden">
+            <h2 style="font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:900;margin-bottom:0.4rem;">
+                <i class="fa-solid fa-users" style="color:var(--banner-gold);"></i> El Escuadrón NXMASTERS
+            </h2>
+            <p style="color:var(--text-muted);font-size:0.9rem;">
+                Los 6 integrantes oficiales representados en nuestro emblema de la Gaming Zone, junto con nuestros grupos de soporte y juego online:
+            </p>
+
+            <div id="team-grid" class="team-grid"></div>
+        </section>
+
+    </main>
+
+    <!-- MODAL DETALLES Y DESCARGA TERABOX -->
+    <dialog id="modal-juego" class="modal-juego">
+        <div id="modal-body"></div>
+    </dialog>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="footer-glow">
+        <p style="font-family:'Outfit',sans-serif;font-weight:900;font-size:1rem;color:#fff;margin-bottom:0.35rem;">
+            NX<span class="brand-gold">MASTERS</span> TEAM &copy; 2026
+        </p>
+        <p>Recompilaciones Estáticas • Ports Nativos • Wrappers • Forks Autorun — Alojados directamente en <strong>TeraBox</strong>.</p>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
